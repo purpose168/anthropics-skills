@@ -1,82 +1,82 @@
-# Output Patterns
+# 输出模式
 
-Use these patterns when skills need to produce consistent, high-quality output.
+当技能需要产生一致、高质量的输出时，使用这些模式。
 
-## Template Pattern
+## 模板模式
 
-Provide templates for output format. Match the level of strictness to your needs.
+为输出格式提供模板。根据需要匹配严格程度。
 
-**For strict requirements (like API responses or data formats):**
-
-```markdown
-## Report structure
-
-ALWAYS use this exact template structure:
-
-# [Analysis Title]
-
-## Executive summary
-[One-paragraph overview of key findings]
-
-## Key findings
-- Finding 1 with supporting data
-- Finding 2 with supporting data
-- Finding 3 with supporting data
-
-## Recommendations
-1. Specific actionable recommendation
-2. Specific actionable recommendation
-```
-
-**For flexible guidance (when adaptation is useful):**
+**对于严格的要求（如API响应或数据格式）：**
 
 ```markdown
-## Report structure
+## 报告结构
 
-Here is a sensible default format, but use your best judgment:
+始终使用以下确切的模板结构：
 
-# [Analysis Title]
+# [分析标题]
 
-## Executive summary
-[Overview]
+## 执行摘要
+[关键发现的单段落概述]
 
-## Key findings
-[Adapt sections based on what you discover]
+## 关键发现
+- 发现1及支持数据
+- 发现2及支持数据
+- 发现3及支持数据
 
-## Recommendations
-[Tailor to the specific context]
-
-Adjust sections as needed for the specific analysis type.
+## 建议
+1. 具体的可操作建议
+2. 具体的可操作建议
 ```
 
-## Examples Pattern
-
-For skills where output quality depends on seeing examples, provide input/output pairs:
+**对于灵活的指导（当适应有用时）：**
 
 ```markdown
-## Commit message format
+## 报告结构
 
-Generate commit messages following these examples:
+这是一个合理的默认格式，但请使用最佳判断：
 
-**Example 1:**
-Input: Added user authentication with JWT tokens
-Output:
-```
-feat(auth): implement JWT-based authentication
+# [分析标题]
 
-Add login endpoint and token validation middleware
-```
+## 执行摘要
+[概述]
 
-**Example 2:**
-Input: Fixed bug where dates displayed incorrectly in reports
-Output:
-```
-fix(reports): correct date formatting in timezone conversion
+## 关键发现
+[根据您的发现调整部分]
 
-Use UTC timestamps consistently across report generation
+## 建议
+[根据具体上下文调整]
+
+根据具体分析类型按需调整部分。
 ```
 
-Follow this style: type(scope): brief description, then detailed explanation.
+## 示例模式
+
+对于输出质量取决于查看示例的技能，提供输入/输出对：
+
+```markdown
+## 提交消息格式
+
+按照以下示例生成提交消息：
+
+**示例1：**
+输入：使用JWT令牌添加用户认证
+输出：
+```
+feat(auth): 实现基于JWT的认证
+
+添加登录端点和令牌验证中间件
 ```
 
-Examples help Claude understand the desired style and level of detail more clearly than descriptions alone.
+**示例2：**
+输入：修复了报告中日期显示不正确的问题
+输出：
+```
+fix(reports): 修正时区转换中的日期格式
+
+在报告生成中一致使用UTC时间戳
+```
+
+遵循此风格：类型(范围)：简要描述，然后详细说明。
+```
+
+示例比单独的描述更能帮助Claude理解所需的风格和详细程度。

@@ -1,3 +1,3 @@
-# Agent Skills Spec
+# 智能体技能规范
 
-The spec is now located at <https://agentskills.io/specification>
+本规范现位于 <https://agentskills.io/specification>
