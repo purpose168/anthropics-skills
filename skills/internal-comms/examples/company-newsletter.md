@@ -1,65 +1,65 @@
-## Instructions
-You are being asked to write a company-wide newsletter update. You are meant to summarize the past week/month of a company in the form of a newsletter that the entire company will read. It should be maybe ~20-25 bullet points long. It will be sent via Slack and email, so make it consumable for that.
+## 说明
+你被要求撰写一份公司范围的通讯更新。你需要以整个公司都会阅读的通讯形式总结公司过去的一周/一个月。它应该大约有 20-25 个要点长。它将通过 Slack 和电子邮件发送，因此要使其易于消化。
 
-Ideally it includes the following attributes:
-- Lots of links: pulling documents from Google Drive that are very relevant, linking to prominent Slack messages in announce channels and from executives, perhgaps referencing emails that went company-wide, highlighting significant things that have happened in the company.
-- Short and to-the-point: each bullet should probably be no longer than ~1-2 sentences
-- Use the "we" tense, as you are part of the company. Many of the bullets should say "we did this" or "we did that"
+理想情况下，它应包含以下属性：
+- 大量链接：从 Google Drive 拉取非常相关的文档，链接到公告频道和来自高管的重要 Slack 消息，可能引用发送给全公司的邮件，突出公司发生的重大事件。
+- 简短直击要点：每个要点可能不应超过大约 1-2 句
+- 使用"我们"的时态，因为你是公司的一员。许多要点应该说"我们做了这个"或"我们做了那个"
 
-## Tools to use
-If you have access to the following tools, please try to use them. If not, you can also let the user know directly that their responses would be better if they gave them access.
+## 使用的工具
+如果你可以访问以下工具，请尝试使用它们。如果不能，你也可以直接让用户知道，如果他们给予访问权限，他们的回复会更好。
 
-- Slack: look for messages in channels with lots of people, with lots of reactions or lots of responses within the thread
-- Email: look for things from executives that discuss company-wide announcements
-- Calendar: if there were meetings with large attendee lists, particularly things like All-Hands meetings, big company announcements, etc. If there were documents attached to those meetings, those are great links to include.
-- Documents: if there were new docs published in the last week or two that got a lot of attention, you can link them. These should be things like company-wide vision docs, plans for the upcoming quarter or half, things authored by critical executives, etc.
-- External press: if you see references to articles or press we've received over the past week, that could be really cool too.
+- Slack：寻找有大量人员的频道中的消息，有大量反应或线程内大量回复的内容
+- Email：寻找讨论公司范围公告的高管内容
+- Calendar：如果有大型参与者列表的会议，特别是全员会议、大型公司公告等。如果这些会议有附件文档，那些是包含的好链接。
+- 文档：如果过去一周或两周有新发布的文档获得了很多关注，你可以链接它们。这些应该是公司范围的愿景文档、下一季度或半年的计划、关键高管撰写的文档等。
+- 外部新闻：如果你看到我们过去一周收到的文章或新闻参考，那也可能非常酷。
 
-If you don't have access to any of these things, you can ask the user for things they want to cover. In this case, you'll mostly just be polishing up and fitting to this format more directly.
+如果你无法访问任何这些内容，可以向用户询问他们想涵盖的内容。在这种情况下，你将主要只是润色并更直接地适应这个格式。
 
-## Sections
-The company is pretty big: 1000+ people. There are a variety of different teams and initiatives going on across the company. To make sure the update works well, try breaking it into sections of similar things. You might break into clusters like {product development, go to market, finance} or {recruiting, execution, vision}, or {external news, internal news} etc. Try to make sure the different areas of the company are highlighted well.
+## 部分
+公司相当大：1000+ 人。公司内有各种不同的团队和计划。为了确保更新效果良好，尝试将其分成相似的部分。你可能会分成这样的集群 {产品开发、市场推广、财务} 或 {招聘、执行、愿景}，或 {外部新闻、内部新闻} 等。尝试确保公司的不同领域得到很好的突出。
 
-## Prioritization
-Focus on:
-- Company-wide impact (not team-specific details)
-- Announcements from leadership
-- Major milestones and achievements
-- Information that affects most employees
-- External recognition or press
+## 优先级
+专注于：
+- 公司范围的影响（不是团队特定的细节）
+- 来自领导层的公告
+- 主要里程碑和成就
+- 影响大多数员工的信息
+- 外部认可或新闻
 
-Avoid:
-- Overly granular team updates (save those for 3Ps)
-- Information only relevant to small groups
-- Duplicate information already communicated
+避免：
+- 过于具体的团队更新（将那些留给 3P）
+- 仅与小组相关的信息
+- 已沟通的重复信息
 
-## Example Formats
+## 示例格式
 
-:megaphone: Company Announcements
-- Announcement 1
-- Announcement 2
-- Announcement 3
+:megaphone: 公司公告
+- 公告 1
+- 公告 2
+- 公告 3
 
-:dart: Progress on Priorities
-- Area 1
-    - Sub-area 1
-    - Sub-area 2
-    - Sub-area 3
-- Area 2
-    - Sub-area 1
-    - Sub-area 2
-    - Sub-area 3
-- Area 3
-    - Sub-area 1
-    - Sub-area 2
-    - Sub-area 3
+:dart: 优先事项进展
+- 领域 1
+    - 子领域 1
+    - 子领域 2
+    - 子领域 3
+- 领域 2
+    - 子领域 1
+    - 子领域 2
+    - 子领域 3
+- 领域 3
+    - 子领域 1
+    - 子领域 2
+    - 子领域 3
 
-:pillar: Leadership Updates
-- Post 1
-- Post 2
-- Post 3
+:pillar: 领导层更新
+- 帖子 1
+- 帖子 2
+- 帖子 3
 
-:thread: Social Updates
-- Update 1
-- Update 2
-- Update 3
+:thread: 社交更新
+- 更新 1
+- 更新 2
+- 更新 3

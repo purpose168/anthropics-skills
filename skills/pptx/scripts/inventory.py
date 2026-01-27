@@ -1,24 +1,24 @@
 #!/usr/bin/env python3
 """
-Extract structured text content from PowerPoint presentations.
+从 PowerPoint 演示文稿中提取结构化文本内容。
 
-This module provides functionality to:
-- Extract all text content from PowerPoint shapes
-- Preserve paragraph formatting (alignment, bullets, fonts, spacing)
-- Handle nested GroupShapes recursively with correct absolute positions
-- Sort shapes by visual position on slides
-- Filter out slide numbers and non-content placeholders
-- Export to JSON with clean, structured data
+此模块提供以下功能：
+- 从 PowerPoint 形状中提取所有文本内容
+- 保留段落格式（对齐、项目符号、字体、间距）
+- 递归处理嵌套的 GroupShape 并计算正确的绝对位置
+- 按幻灯片上的视觉位置对形状进行排序
+- 过滤掉幻灯片编号和非内容占位符
+- 导出为 JSON 格式的清洁结构化数据
 
-Classes:
-    ParagraphData: Represents a text paragraph with formatting
-    ShapeData: Represents a shape with position and text content
+类：
+    ParagraphData: 表示带有格式的文本段落
+    ShapeData: 表示带有位置和文本内容的形状
 
-Main Functions:
-    extract_text_inventory: Extract all text from a presentation
-    save_inventory: Save extracted data to JSON
+主函数：
+    extract_text_inventory: 从演示文稿中提取所有文本
+    save_inventory: 将提取的数据保存为 JSON
 
-Usage:
+用法：
     python inventory.py input.pptx output.json
 """
 
@@ -35,64 +35,63 @@ from pptx import Presentation
 from pptx.enum.text import PP_ALIGN
 from pptx.shapes.base import BaseShape
 
-# Type aliases for cleaner signatures
-JsonValue = Union[str, int, float, bool, None]
+JsonValue = Union[str, int, float, bool, None]  # 用于更清晰签名的类型别名
 ParagraphDict = Dict[str, JsonValue]
 ShapeDict = Dict[
     str, Union[str, float, bool, List[ParagraphDict], List[str], Dict[str, Any], None]
 ]
 InventoryData = Dict[
     str, Dict[str, "ShapeData"]
-]  # Dict of slide_id -> {shape_id -> ShapeData}
-InventoryDict = Dict[str, Dict[str, ShapeDict]]  # JSON-serializable inventory
+]  # 幻灯片 ID -> {形状 ID -> ShapeData} 的字典
+InventoryDict = Dict[str, Dict[str, ShapeDict]]  # 可序列化为 JSON 的清单字典
 
 
 def main():
-    """Main entry point for command-line usage."""
+    """命令行使用的主入口点。"""
     parser = argparse.ArgumentParser(
-        description="Extract text inventory from PowerPoint with proper GroupShape support.",
+        description="从 PowerPoint 中提取文本清单，正确支持 GroupShape。",
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog="""
-Examples:
+示例：
   python inventory.py presentation.pptx inventory.json
-    Extracts text inventory with correct absolute positions for grouped shapes
+    提取文本清单，对于分组形状使用正确的绝对位置
 
   python inventory.py presentation.pptx inventory.json --issues-only
-    Extracts only text shapes that have overflow or overlap issues
+    仅提取存在溢出或重叠问题的文本形状
 
-The output JSON includes:
-  - All text content organized by slide and shape
-  - Correct absolute positions for shapes in groups
-  - Visual position and size in inches
-  - Paragraph properties and formatting
-  - Issue detection: text overflow and shape overlaps
+输出 JSON 包括：
+  - 按幻灯片和形状组织的所有文本内容
+  - 分组中形状的正确绝对位置
+  - 视觉位置和尺寸（英寸）
+  - 段落属性和格式
+  - 问题检测：文本溢出和形状重叠
         """,
     )
 
-    parser.add_argument("input", help="Input PowerPoint file (.pptx)")
-    parser.add_argument("output", help="Output JSON file for inventory")
+    parser.add_argument("input", help="输入的 PowerPoint 文件 (.pptx)")
+    parser.add_argument("output", help="输出的 JSON 文件用于清单")
     parser.add_argument(
         "--issues-only",
         action="store_true",
-        help="Include only text shapes that have overflow or overlap issues",
+        help="仅包括存在溢出或重叠问题的文本形状",
     )
 
     args = parser.parse_args()
 
     input_path = Path(args.input)
     if not input_path.exists():
-        print(f"Error: Input file not found: {args.input}")
+        print(f"错误：未找到输入文件：{args.input}")
         sys.exit(1)
 
     if not input_path.suffix.lower() == ".pptx":
-        print("Error: Input must be a PowerPoint file (.pptx)")
+        print("错误：输入必须是 PowerPoint 文件 (.pptx)")
         sys.exit(1)
 
     try:
-        print(f"Extracting text inventory from: {args.input}")
+        print(f"正在从以下文件提取文本清单：{args.input}")
         if args.issues_only:
             print(
-                "Filtering to include only text shapes with issues (overflow/overlap)"
+                "过滤为仅包括存在问题的文本形状（溢出/重叠）"
             )
         inventory = extract_text_inventory(input_path, issues_only=args.issues_only)
 
@@ -100,25 +99,25 @@ The output JSON includes:
         output_path.parent.mkdir(parents=True, exist_ok=True)
         save_inventory(inventory, output_path)
 
-        print(f"Output saved to: {args.output}")
+        print(f"输出已保存至：{args.output}")
 
-        # Report statistics
+        # 报告统计信息
         total_slides = len(inventory)
         total_shapes = sum(len(shapes) for shapes in inventory.values())
         if args.issues_only:
             if total_shapes > 0:
                 print(
-                    f"Found {total_shapes} text elements with issues in {total_slides} slides"
+                    f"在 {total_slides} 张幻灯片中发现了 {total_shapes} 个存在问题的文本元素"
                 )
             else:
-                print("No issues discovered")
+                print("未发现问题")
         else:
             print(
-                f"Found text in {total_slides} slides with {total_shapes} text elements"
+                f"在 {total_slides} 张幻灯片中发现了包含文本的 {total_shapes} 个文本元素"
             )
 
     except Exception as e:
-        print(f"Error processing presentation: {e}")
+        print(f"处理演示文稿时出错：{e}")
         import traceback
 
         traceback.print_exc()
@@ -127,38 +126,38 @@ The output JSON includes:
 
 @dataclass
 class ShapeWithPosition:
-    """A shape with its absolute position on the slide."""
+    """幻灯片上带有绝对位置的形状。"""
 
     shape: BaseShape
-    absolute_left: int  # in EMUs
-    absolute_top: int  # in EMUs
+    absolute_left: int  # 以 EMU 为单位
+    absolute_top: int   # 以 EMU 为单位
 
 
 class ParagraphData:
-    """Data structure for paragraph properties extracted from a PowerPoint paragraph."""
+    """从 PowerPoint 段落提取的段落属性数据结构。"""
 
     def __init__(self, paragraph: Any):
-        """Initialize from a PowerPoint paragraph object.
+        """从 PowerPoint 段落对象初始化。
 
         Args:
-            paragraph: The PowerPoint paragraph object
+            paragraph: PowerPoint 段落对象
         """
         self.text: str = paragraph.text.strip()
-        self.bullet: bool = False
-        self.level: Optional[int] = None
-        self.alignment: Optional[str] = None
-        self.space_before: Optional[float] = None
-        self.space_after: Optional[float] = None
-        self.font_name: Optional[str] = None
-        self.font_size: Optional[float] = None
-        self.bold: Optional[bool] = None
-        self.italic: Optional[bool] = None
-        self.underline: Optional[bool] = None
-        self.color: Optional[str] = None
-        self.theme_color: Optional[str] = None
-        self.line_spacing: Optional[float] = None
+        self.bullet: bool = False                      # 是否为项目符号
+        self.level: Optional[int] = None               # 缩进级别
+        self.alignment: Optional[str] = None           # 对齐方式
+        self.space_before: Optional[float] = None      # 段前间距
+        self.space_after: Optional[float] = None       # 段后间距
+        self.font_name: Optional[str] = None           # 字体名称
+        self.font_size: Optional[float] = None         # 字号
+        self.bold: Optional[bool] = None               # 是否粗体
+        self.italic: Optional[bool] = None             # 是否斜体
+        self.underline: Optional[bool] = None          # 是否下划线
+        self.color: Optional[str] = None               # 颜色
+        self.theme_color: Optional[str] = None         # 主题颜色
+        self.line_spacing: Optional[float] = None      # 行距
 
-        # Check for bullet formatting
+        # 检查项目符号格式
         if (
             hasattr(paragraph, "_p")
             and paragraph._p is not None
@@ -174,23 +173,23 @@ class ParagraphData:
                 if hasattr(paragraph, "level"):
                     self.level = paragraph.level
 
-        # Add alignment if not LEFT (default)
+        # 如果不是左对齐（默认值），则添加对齐方式
         if hasattr(paragraph, "alignment") and paragraph.alignment is not None:
             alignment_map = {
-                PP_ALIGN.CENTER: "CENTER",
-                PP_ALIGN.RIGHT: "RIGHT",
-                PP_ALIGN.JUSTIFY: "JUSTIFY",
+                PP_ALIGN.CENTER: "CENTER",     # 居中对齐
+                PP_ALIGN.RIGHT: "RIGHT",       # 右对齐
+                PP_ALIGN.JUSTIFY: "JUSTIFY",   # 两端对齐
             }
             if paragraph.alignment in alignment_map:
                 self.alignment = alignment_map[paragraph.alignment]
 
-        # Add spacing properties if set
+        # 如果设置了间距属性则添加
         if hasattr(paragraph, "space_before") and paragraph.space_before:
             self.space_before = paragraph.space_before.pt
         if hasattr(paragraph, "space_after") and paragraph.space_after:
             self.space_after = paragraph.space_after.pt
 
-        # Extract font properties from first run
+        # 从第一个文本运行中提取字体属性
         if paragraph.runs:
             first_run = paragraph.runs[0]
             if hasattr(first_run, "font"):
@@ -206,33 +205,33 @@ class ParagraphData:
                 if font.underline is not None:
                     self.underline = font.underline
 
-                # Handle color - both RGB and theme colors
+                # 处理颜色 - 包括 RGB 和主题颜色
                 try:
-                    # Try RGB color first
+                    # 先尝试 RGB 颜色
                     if font.color.rgb:
                         self.color = str(font.color.rgb)
                 except (AttributeError, TypeError):
-                    # Fall back to theme color
+                    # 回退到主题颜色
                     try:
                         if font.color.theme_color:
                             self.theme_color = font.color.theme_color.name
                     except (AttributeError, TypeError):
                         pass
 
-        # Add line spacing if set
+        # 如果设置了行距则添加
         if hasattr(paragraph, "line_spacing") and paragraph.line_spacing is not None:
             if hasattr(paragraph.line_spacing, "pt"):
                 self.line_spacing = round(paragraph.line_spacing.pt, 2)
             else:
-                # Multiplier - convert to points
+                # 倍数 - 转换为点数
                 font_size = self.font_size if self.font_size else 12.0
                 self.line_spacing = round(paragraph.line_spacing * font_size, 2)
 
     def to_dict(self) -> ParagraphDict:
-        """Convert to dictionary for JSON serialization, excluding None values."""
+        """转换为字典用于 JSON 序列化，排除 None 值。"""
         result: ParagraphDict = {"text": self.text}
 
-        # Add optional fields only if they have values
+        # 仅在有值时才添加可选字段
         if self.bullet:
             result["bullet"] = self.bullet
         if self.level is not None:
@@ -264,31 +263,31 @@ class ParagraphData:
 
 
 class ShapeData:
-    """Data structure for shape properties extracted from a PowerPoint shape."""
+    """从 PowerPoint 形状提取的形状属性数据结构。"""
 
     @staticmethod
     def emu_to_inches(emu: int) -> float:
-        """Convert EMUs (English Metric Units) to inches."""
+        """将 EMU（英制单位）转换为英寸。"""
         return emu / 914400.0
 
     @staticmethod
     def inches_to_pixels(inches: float, dpi: int = 96) -> int:
-        """Convert inches to pixels at given DPI."""
+        """将英寸转换为给定 DPI 下的像素数。"""
         return int(inches * dpi)
 
     @staticmethod
     def get_font_path(font_name: str) -> Optional[str]:
-        """Get the font file path for a given font name.
+        """获取给定字体名称的字体文件路径。
 
         Args:
-            font_name: Name of the font (e.g., 'Arial', 'Calibri')
+            font_name: 字体名称（例如 'Arial', 'Calibri'）
 
         Returns:
-            Path to the font file, or None if not found
+            字体文件的路径，如果未找到则返回 None
         """
         system = platform.system()
 
-        # Common font file variations to try
+        # 要尝试的常见字体文件变体
         font_variations = [
             font_name,
             font_name.lower(),
@@ -296,7 +295,7 @@ class ShapeData:
             font_name.replace(" ", "-"),
         ]
 
-        # Define font directories and extensions by platform
+        # 按平台定义字体目录和扩展名
         if system == "Darwin":  # macOS
             font_dirs = [
                 "/System/Library/Fonts/",
@@ -312,7 +311,7 @@ class ShapeData:
             ]
             extensions = [".ttf", ".otf"]
 
-        # Try to find the font file
+        # 尝试找到字体文件
         from pathlib import Path
 
         for font_dir in font_dirs:
@@ -320,14 +319,14 @@ class ShapeData:
             if not font_dir_path.exists():
                 continue
 
-            # First try exact matches
+            # 首先尝试精确匹配
             for variant in font_variations:
                 for ext in extensions:
                     font_path = font_dir_path / f"{variant}{ext}"
                     if font_path.exists():
                         return str(font_path)
 
-            # Then try fuzzy matching - find files containing the font name
+            # 然后尝试模糊匹配 - 查找包含字体名称的文件
             try:
                 for file_path in font_dir_path.iterdir():
                     if file_path.is_file():
@@ -344,13 +343,13 @@ class ShapeData:
 
     @staticmethod
     def get_slide_dimensions(slide: Any) -> tuple[Optional[int], Optional[int]]:
-        """Get slide dimensions from slide object.
+        """从幻灯片对象获取幻灯片尺寸。
 
         Args:
-            slide: Slide object
+            slide: 幻灯片对象
 
         Returns:
-            Tuple of (width_emu, height_emu) or (None, None) if not found
+            (宽度_emu, 高度_emu) 元组，如果未找到则返回 (None, None)
         """
         try:
             prs = slide.part.package.presentation_part.presentation
@@ -360,14 +359,14 @@ class ShapeData:
 
     @staticmethod
     def get_default_font_size(shape: BaseShape, slide_layout: Any) -> Optional[float]:
-        """Extract default font size from slide layout for a placeholder shape.
+        """从幻灯片布局中提取占位符形状的默认字体大小。
 
         Args:
-            shape: Placeholder shape
-            slide_layout: Slide layout containing the placeholder definition
+            shape: 占位符形状
+            slide_layout: 包含占位符定义的幻灯片布局
 
         Returns:
-            Default font size in points, or None if not found
+            默认字号（磅），如果未找到则返回 None
         """
         try:
             if not hasattr(shape, "placeholder_format"):
@@ -376,10 +375,10 @@ class ShapeData:
             shape_type = shape.placeholder_format.type  # type: ignore
             for layout_placeholder in slide_layout.placeholders:
                 if layout_placeholder.placeholder_format.type == shape_type:
-                    # Find first defRPr element with sz (size) attribute
+                    # 查找第一个带有 sz（大小）属性的 defRPr 元素
                     for elem in layout_placeholder.element.iter():
                         if "defRPr" in elem.tag and (sz := elem.get("sz")):
-                            return float(sz) / 100.0  # Convert EMUs to points
+                            return float(sz) / 100.0  # 将 EMU 转换为磅
                     break
         except Exception:
             pass
@@ -392,23 +391,23 @@ class ShapeData:
         absolute_top: Optional[int] = None,
         slide: Optional[Any] = None,
     ):
-        """Initialize from a PowerPoint shape object.
+        """从 PowerPoint 形状对象初始化。
 
         Args:
-            shape: The PowerPoint shape object (should be pre-validated)
-            absolute_left: Absolute left position in EMUs (for shapes in groups)
-            absolute_top: Absolute top position in EMUs (for shapes in groups)
-            slide: Optional slide object to get dimensions and layout information
+            shape: PowerPoint 形状对象（应预先验证）
+            absolute_left: 绝对左侧位置（以 EMU 为单位，用于分组中的形状）
+            absolute_top: 绝对顶部位置（以 EMU 为单位，用于分组中的形状）
+            slide: 可选的幻灯片对象，用于获取尺寸和布局信息
         """
-        self.shape = shape  # Store reference to original shape
-        self.shape_id: str = ""  # Will be set after sorting
+        self.shape = shape  # 存储对原始形状的引用
+        self.shape_id: str = ""  # 排序后设置
 
-        # Get slide dimensions from slide object
+        # 从幻灯片对象获取幻灯片尺寸
         self.slide_width_emu, self.slide_height_emu = (
             self.get_slide_dimensions(slide) if slide else (None, None)
         )
 
-        # Get placeholder type if applicable
+        # 获取占位符类型（如果适用）
         self.placeholder_type: Optional[str] = None
         self.default_font_size: Optional[float] = None
         if hasattr(shape, "is_placeholder") and shape.is_placeholder:  # type: ignore
@@ -417,14 +416,14 @@ class ShapeData:
                     str(shape.placeholder_format.type).split(".")[-1].split(" ")[0]  # type: ignore
                 )
 
-                # Get default font size from layout
+                # 从布局获取默认字体大小
                 if slide and hasattr(slide, "slide_layout"):
                     self.default_font_size = self.get_default_font_size(
                         shape, slide.slide_layout
                     )
 
-        # Get position information
-        # Use absolute positions if provided (for shapes in groups), otherwise use shape's position
+        # 获取位置信息
+        # 如果提供（用于分组中的形状），则使用绝对位置，否则使用形状的位置
         left_emu = (
             absolute_left
             if absolute_left is not None
@@ -447,27 +446,27 @@ class ShapeData:
             2,  # type: ignore
         )
 
-        # Store EMU positions for overflow calculations
+        # 存储 EMU 位置用于溢出计算
         self.left_emu = left_emu
         self.top_emu = top_emu
         self.width_emu = shape.width if hasattr(shape, "width") else 0
         self.height_emu = shape.height if hasattr(shape, "height") else 0
 
-        # Calculate overflow status
-        self.frame_overflow_bottom: Optional[float] = None
-        self.slide_overflow_right: Optional[float] = None
-        self.slide_overflow_bottom: Optional[float] = None
+        # 计算溢出状态
+        self.frame_overflow_bottom: Optional[float] = None   # 形状底部溢出
+        self.slide_overflow_right: Optional[float] = None    # 幻灯片右侧溢出
+        self.slide_overflow_bottom: Optional[float] = None   # 幻灯片底部溢出
         self.overlapping_shapes: Dict[
             str, float
-        ] = {}  # Dict of shape_id -> overlap area in sq inches
-        self.warnings: List[str] = []
-        self._estimate_frame_overflow()
-        self._calculate_slide_overflow()
-        self._detect_bullet_issues()
+        ] = {}  # 形状 ID -> 重叠面积（平方英寸）的字典
+        self.warnings: List[str] = []                        # 警告列表
+        self._estimate_frame_overflow()                      # 估算形状内溢出
+        self._calculate_slide_overflow()                     # 计算幻灯片溢出
+        self._detect_bullet_issues()                         # 检测项目符号问题
 
     @property
     def paragraphs(self) -> List[ParagraphData]:
-        """Calculate paragraphs from the shape's text frame."""
+        """从形状的文本框计算段落。"""
         if not self.shape or not hasattr(self.shape, "text_frame"):
             return []
 
@@ -478,7 +477,7 @@ class ShapeData:
         return paragraphs
 
     def _get_default_font_size(self) -> int:
-        """Get default font size from theme text styles or use conservative default."""
+        """从主题文本样式获取默认字体大小，或使用保守默认值。"""
         try:
             if not (
                 hasattr(self.shape, "part") and hasattr(self.shape.part, "slide_layout")
@@ -489,12 +488,12 @@ class ShapeData:
             if not hasattr(slide_master, "element"):
                 return 14
 
-            # Determine theme style based on placeholder type
-            style_name = "bodyStyle"  # Default
+            # 根据占位符类型确定主题样式
+            style_name = "bodyStyle"  # 默认值
             if self.placeholder_type and "TITLE" in self.placeholder_type:
                 style_name = "titleStyle"
 
-            # Find font size in theme styles
+            # 在主题样式中查找字体大小
             for child in slide_master.element.iter():
                 tag = child.tag.split("}")[-1] if "}" in child.tag else child.tag
                 if tag == style_name:
@@ -504,14 +503,14 @@ class ShapeData:
         except Exception:
             pass
 
-        return 14  # Conservative default for body text
+        return 14  # 正文文本的保守默认值
 
     def _get_usable_dimensions(self, text_frame) -> Tuple[int, int]:
-        """Get usable width and height in pixels after accounting for margins."""
-        # Default PowerPoint margins in inches
+        """在考虑边距后获取可用的宽度和高度（像素）。"""
+        # PowerPoint 默认边距（英寸）
         margins = {"top": 0.05, "bottom": 0.05, "left": 0.1, "right": 0.1}
 
-        # Override with actual margins if set
+        # 如果设置了则覆盖实际边距
         if hasattr(text_frame, "margin_top") and text_frame.margin_top:
             margins["top"] = self.emu_to_inches(text_frame.margin_top)
         if hasattr(text_frame, "margin_bottom") and text_frame.margin_bottom:
@@ -521,26 +520,26 @@ class ShapeData:
         if hasattr(text_frame, "margin_right") and text_frame.margin_right:
             margins["right"] = self.emu_to_inches(text_frame.margin_right)
 
-        # Calculate usable area
+        # 计算可用区域
         usable_width = self.width - margins["left"] - margins["right"]
         usable_height = self.height - margins["top"] - margins["bottom"]
 
-        # Convert to pixels
+        # 转换为像素
         return (
             self.inches_to_pixels(usable_width),
             self.inches_to_pixels(usable_height),
         )
 
     def _wrap_text_line(self, line: str, max_width_px: int, draw, font) -> List[str]:
-        """Wrap a single line of text to fit within max_width_px."""
+        """将单行文本包装以适应 max_width_px。"""
         if not line:
             return [""]
 
-        # Use textlength for efficient width calculation
+        # 使用 textlength 进行高效的宽度计算
         if draw.textlength(line, font=font) <= max_width_px:
             return [line]
 
-        # Need to wrap - split into words
+        # 需要包装 - 拆分为单词
         wrapped = []
         words = line.split(" ")
         current_line = ""
@@ -560,7 +559,7 @@ class ShapeData:
         return wrapped
 
     def _estimate_frame_overflow(self) -> None:
-        """Estimate if text overflows the shape bounds using PIL text measurement."""
+        """使用 PIL 文本测量估算文本是否溢出形状边界。"""
         if not self.shape or not hasattr(self.shape, "text_frame"):
             return
 
@@ -568,19 +567,19 @@ class ShapeData:
         if not text_frame or not text_frame.paragraphs:
             return
 
-        # Get usable dimensions after accounting for margins
+        # 获取考虑边距后的可用尺寸
         usable_width_px, usable_height_px = self._get_usable_dimensions(text_frame)
         if usable_width_px <= 0 or usable_height_px <= 0:
             return
 
-        # Set up PIL for text measurement
+        # 设置 PIL 用于文本测量
         dummy_img = Image.new("RGB", (1, 1))
         draw = ImageDraw.Draw(dummy_img)
 
-        # Get default font size from placeholder or use conservative estimate
+        # 从占位符获取默认字体大小或使用保守估计
         default_font_size = self._get_default_font_size()
 
-        # Calculate total height of all paragraphs
+        # 计算所有段落的总高度
         total_height_px = 0
 
         for para_idx, paragraph in enumerate(text_frame.paragraphs):
@@ -589,7 +588,7 @@ class ShapeData:
 
             para_data = ParagraphData(paragraph)
 
-            # Load font for this paragraph
+            # 为此段落加载字体
             font_name = para_data.font_name or "Arial"
             font_size = int(para_data.font_size or default_font_size)
 
@@ -603,62 +602,62 @@ class ShapeData:
             else:
                 font = ImageFont.load_default()
 
-            # Wrap all lines in this paragraph
+            # 包装此段落中的所有行
             all_wrapped_lines = []
             for line in paragraph.text.split("\n"):
                 wrapped = self._wrap_text_line(line, usable_width_px, draw, font)
                 all_wrapped_lines.extend(wrapped)
 
             if all_wrapped_lines:
-                # Calculate line height
+                # 计算行高
                 if para_data.line_spacing:
-                    # Custom line spacing explicitly set
+                    # 明确设置的自定义行距
                     line_height_px = para_data.line_spacing * 96 / 72
                 else:
-                    # PowerPoint default single spacing (1.0x font size)
+                    # PowerPoint 默认单倍行距（1.0x 字号）
                     line_height_px = font_size * 96 / 72
 
-                # Add space_before (except first paragraph)
+                # 添加段前间距（第一段除外）
                 if para_idx > 0 and para_data.space_before:
                     total_height_px += para_data.space_before * 96 / 72
 
-                # Add paragraph text height
+                # 添加段落文本高度
                 total_height_px += len(all_wrapped_lines) * line_height_px
 
-                # Add space_after
+                # 添加段后间距
                 if para_data.space_after:
                     total_height_px += para_data.space_after * 96 / 72
 
-        # Check for overflow (ignore negligible overflows <= 0.05")
+        # 检查溢出（忽略 <= 0.05" 的可忽略溢出）
         if total_height_px > usable_height_px:
             overflow_px = total_height_px - usable_height_px
             overflow_inches = round(overflow_px / 96.0, 2)
-            if overflow_inches > 0.05:  # Only report significant overflows
+            if overflow_inches > 0.05:  # 仅报告重大溢出
                 self.frame_overflow_bottom = overflow_inches
 
     def _calculate_slide_overflow(self) -> None:
-        """Calculate if shape overflows the slide boundaries."""
+        """计算形状是否溢出幻灯片边界。"""
         if self.slide_width_emu is None or self.slide_height_emu is None:
             return
 
-        # Check right overflow (ignore negligible overflows <= 0.01")
+        # 检查右侧溢出（忽略 <= 0.01" 的可忽略溢出）
         right_edge_emu = self.left_emu + self.width_emu
         if right_edge_emu > self.slide_width_emu:
             overflow_emu = right_edge_emu - self.slide_width_emu
             overflow_inches = round(self.emu_to_inches(overflow_emu), 2)
-            if overflow_inches > 0.01:  # Only report significant overflows
+            if overflow_inches > 0.01:  # 仅报告重大溢出
                 self.slide_overflow_right = overflow_inches
 
-        # Check bottom overflow (ignore negligible overflows <= 0.01")
+        # 检查底部溢出（忽略 <= 0.01" 的可忽略溢出）
         bottom_edge_emu = self.top_emu + self.height_emu
         if bottom_edge_emu > self.slide_height_emu:
             overflow_emu = bottom_edge_emu - self.slide_height_emu
             overflow_inches = round(self.emu_to_inches(overflow_emu), 2)
-            if overflow_inches > 0.01:  # Only report significant overflows
+            if overflow_inches > 0.01:  # 仅报告重大溢出
                 self.slide_overflow_bottom = overflow_inches
 
     def _detect_bullet_issues(self) -> None:
-        """Detect bullet point formatting issues in paragraphs."""
+        """检测段落中的项目符号格式问题。"""
         if not self.shape or not hasattr(self.shape, "text_frame"):
             return
 
@@ -666,12 +665,12 @@ class ShapeData:
         if not text_frame or not text_frame.paragraphs:
             return
 
-        # Common bullet symbols that indicate manual bullets
+        # 表明手动项目符号的常见符号
         bullet_symbols = ["•", "●", "○"]
 
         for paragraph in text_frame.paragraphs:
             text = paragraph.text.strip()
-            # Check for manual bullet symbols
+            # 检查手动项目符号
             if text and any(text.startswith(symbol + " ") for symbol in bullet_symbols):
                 self.warnings.append(
                     "manual_bullet_symbol: use proper bullet formatting"
@@ -680,7 +679,7 @@ class ShapeData:
 
     @property
     def has_any_issues(self) -> bool:
-        """Check if shape has any issues (overflow, overlap, or warnings)."""
+        """检查形状是否存在任何问题（溢出、重叠或警告）。"""
         return (
             self.frame_overflow_bottom is not None
             or self.slide_overflow_right is not None
@@ -690,7 +689,7 @@ class ShapeData:
         )
 
     def to_dict(self) -> ShapeDict:
-        """Convert to dictionary for JSON serialization."""
+        """转换为字典用于 JSON 序列化。"""
         result: ShapeDict = {
             "left": self.left,
             "top": self.top,
@@ -698,21 +697,21 @@ class ShapeData:
             "height": self.height,
         }
 
-        # Add optional fields if present
+        # 如果存在则添加可选字段
         if self.placeholder_type:
             result["placeholder_type"] = self.placeholder_type
 
         if self.default_font_size:
             result["default_font_size"] = self.default_font_size
 
-        # Add overflow information only if there is overflow
+        # 仅在有溢出时添加溢出信息
         overflow_data = {}
 
-        # Add frame overflow if present
+        # 如果存在则添加形状内溢出
         if self.frame_overflow_bottom is not None:
             overflow_data["frame"] = {"overflow_bottom": self.frame_overflow_bottom}
 
-        # Add slide overflow if present
+        # 如果存在则添加幻灯片溢出
         slide_overflow = {}
         if self.slide_overflow_right is not None:
             slide_overflow["overflow_right"] = self.slide_overflow_right
@@ -721,27 +720,27 @@ class ShapeData:
         if slide_overflow:
             overflow_data["slide"] = slide_overflow
 
-        # Only add overflow field if there is overflow
+        # 仅在有溢出时添加溢出字段
         if overflow_data:
             result["overflow"] = overflow_data
 
-        # Add overlap field if there are overlapping shapes
+        # 如果有重叠形状则添加重叠字段
         if self.overlapping_shapes:
             result["overlap"] = {"overlapping_shapes": self.overlapping_shapes}
 
-        # Add warnings field if there are warnings
+        # 如果有警告则添加警告字段
         if self.warnings:
             result["warnings"] = self.warnings
 
-        # Add paragraphs after placeholder_type
+        # 在 placeholder_type 之后添加段落
         result["paragraphs"] = [para.to_dict() for para in self.paragraphs]
 
         return result
 
 
 def is_valid_shape(shape: BaseShape) -> bool:
-    """Check if a shape contains meaningful text content."""
-    # Must have a text frame with content
+    """检查形状是否包含有意义的文本内容。"""
+    # 必须有带内容的文本框
     if not hasattr(shape, "text_frame") or not shape.text_frame:  # type: ignore
         return False
 
@@ -749,7 +748,7 @@ def is_valid_shape(shape: BaseShape) -> bool:
     if not text:
         return False
 
-    # Skip slide numbers and numeric footers
+    # 跳过幻灯片编号和数字页脚
     if hasattr(shape, "is_placeholder") and shape.is_placeholder:  # type: ignore
         if shape.placeholder_format and shape.placeholder_format.type:  # type: ignore
             placeholder_type = (
@@ -766,31 +765,30 @@ def is_valid_shape(shape: BaseShape) -> bool:
 def collect_shapes_with_absolute_positions(
     shape: BaseShape, parent_left: int = 0, parent_top: int = 0
 ) -> List[ShapeWithPosition]:
-    """Recursively collect all shapes with valid text, calculating absolute positions.
+    """递归收集所有带有有效文本的形状，计算绝对位置。
 
-    For shapes within groups, their positions are relative to the group.
-    This function calculates the absolute position on the slide by accumulating
-    parent group offsets.
+    对于分组中的形状，它们的位置是相对于分组的。
+    此函数通过累加父分组偏移量来计算幻灯片上的绝对位置。
 
     Args:
-        shape: The shape to process
-        parent_left: Accumulated left offset from parent groups (in EMUs)
-        parent_top: Accumulated top offset from parent groups (in EMUs)
+        shape: 要处理的形状
+        parent_left: 从父分组累加的左侧偏移量（以 EMU 为单位）
+        parent_top: 从父分组累加的顶部偏移量（以 EMU 为单位）
 
     Returns:
-        List of ShapeWithPosition objects with absolute positions
+        带有绝对位置的 ShapeWithPosition 对象列表
     """
     if hasattr(shape, "shapes"):  # GroupShape
         result = []
-        # Get this group's position
+        # 获取此分组的位置
         group_left = shape.left if hasattr(shape, "left") else 0
         group_top = shape.top if hasattr(shape, "top") else 0
 
-        # Calculate absolute position for this group
+        # 计算此分组的绝对位置
         abs_group_left = parent_left + group_left
         abs_group_top = parent_top + group_top
 
-        # Process children with accumulated offsets
+        # 使用累加偏移量处理子元素
         for child in shape.shapes:  # type: ignore
             result.extend(
                 collect_shapes_with_absolute_positions(
@@ -799,9 +797,9 @@ def collect_shapes_with_absolute_positions(
             )
         return result
 
-    # Regular shape - check if it has valid text
+    # 常规形状 - 检查是否有有效文本
     if is_valid_shape(shape):
-        # Calculate absolute position
+        # 计算绝对位置
         shape_left = shape.left if hasattr(shape, "left") else 0
         shape_top = shape.top if hasattr(shape, "top") else 0
 
@@ -817,17 +815,17 @@ def collect_shapes_with_absolute_positions(
 
 
 def sort_shapes_by_position(shapes: List[ShapeData]) -> List[ShapeData]:
-    """Sort shapes by visual position (top-to-bottom, left-to-right).
+    """按视觉位置对形状进行排序（从上到下，从左到右）。
 
-    Shapes within 0.5 inches vertically are considered on the same row.
+    垂直方向在 0.5 英寸内的形状被认为是同一行的。
     """
     if not shapes:
         return shapes
 
-    # Sort by top position first
+    # 首先按顶部位置排序
     shapes = sorted(shapes, key=lambda s: (s.top, s.left))
 
-    # Group shapes by row (within 0.5 inches vertically)
+    # 按行对形状进行分组（垂直方向在 0.5 英寸内）
     result = []
     row = [shapes[0]]
     row_top = shapes[0].top
@@ -836,12 +834,12 @@ def sort_shapes_by_position(shapes: List[ShapeData]) -> List[ShapeData]:
         if abs(shape.top - row_top) <= 0.5:
             row.append(shape)
         else:
-            # Sort current row by left position and add to result
+            # 对当前行按左侧位置排序并添加到结果
             result.extend(sorted(row, key=lambda s: s.left))
             row = [shape]
             row_top = shape.top
 
-    # Don't forget the last row
+    # 不要忘记最后一行
     result.extend(sorted(row, key=lambda s: s.left))
     return result
 
@@ -851,28 +849,28 @@ def calculate_overlap(
     rect2: Tuple[float, float, float, float],
     tolerance: float = 0.05,
 ) -> Tuple[bool, float]:
-    """Calculate if and how much two rectangles overlap.
+    """计算两个矩形是否重叠以及重叠程度。
 
     Args:
-        rect1: (left, top, width, height) of first rectangle in inches
-        rect2: (left, top, width, height) of second rectangle in inches
-        tolerance: Minimum overlap in inches to consider as overlapping (default: 0.05")
+        rect1: 第一个矩形的 (left, top, width, height)（英寸）
+        rect2: 第二个矩形的 (left, top, width, height)（英寸）
+        tolerance: 要视为重叠的最小重叠量（英寸）（默认值：0.05"）
 
     Returns:
-        Tuple of (overlaps, overlap_area) where:
-        - overlaps: True if rectangles overlap by more than tolerance
-        - overlap_area: Area of overlap in square inches
+        (overlaps, overlap_area) 元组，其中：
+        - overlaps: 如果矩形重叠超过 tolerance 则为 True
+        - overlap_area: 重叠区域的面积（平方英寸）
     """
     left1, top1, w1, h1 = rect1
     left2, top2, w2, h2 = rect2
 
-    # Calculate overlap dimensions
+    # 计算重叠尺寸
     overlap_width = min(left1 + w1, left2 + w2) - max(left1, left2)
     overlap_height = min(top1 + h1, top2 + h2) - max(top1, top2)
 
-    # Check if there's meaningful overlap (more than tolerance)
+    # 检查是否有有意义的重叠（超过 tolerance）
     if overlap_width > tolerance and overlap_height > tolerance:
-        # Calculate overlap area in square inches
+        # 计算重叠区域的面积（平方英寸）
         overlap_area = overlap_width * overlap_height
         return True, round(overlap_area, 2)
 
@@ -880,25 +878,25 @@ def calculate_overlap(
 
 
 def detect_overlaps(shapes: List[ShapeData]) -> None:
-    """Detect overlapping shapes and update their overlapping_shapes dictionaries.
+    """检测重叠的形状并更新它们的 overlapping_shapes 字典。
 
-    This function requires each ShapeData to have its shape_id already set.
-    It modifies the shapes in-place, adding shape IDs with overlap areas in square inches.
+    此函数要求每个 ShapeData 已经设置了 shape_id。
+    它修改形状，添加带有重叠面积（平方英寸）的形状 ID。
 
     Args:
-        shapes: List of ShapeData objects with shape_id attributes set
+        shapes: 已设置 shape_id 属性的 ShapeData 对象列表
     """
     n = len(shapes)
 
-    # Compare each pair of shapes
+    # 比较每对形状
     for i in range(n):
         for j in range(i + 1, n):
             shape1 = shapes[i]
             shape2 = shapes[j]
 
-            # Ensure shape IDs are set
-            assert shape1.shape_id, f"Shape at index {i} has no shape_id"
-            assert shape2.shape_id, f"Shape at index {j} has no shape_id"
+            # 确保设置了形状 ID
+            assert shape1.shape_id, f"索引 {i} 处的形状没有 shape_id"
+            assert shape2.shape_id, f"索引 {j} 处的形状没有 shape_id"
 
             rect1 = (shape1.left, shape1.top, shape1.width, shape1.height)
             rect2 = (shape2.left, shape2.top, shape2.width, shape2.height)
@@ -906,7 +904,7 @@ def detect_overlaps(shapes: List[ShapeData]) -> None:
             overlaps, overlap_area = calculate_overlap(rect1, rect2)
 
             if overlaps:
-                # Add shape IDs with overlap area in square inches
+                # 添加带有重叠面积（平方英寸）的形状 ID
                 shape1.overlapping_shapes[shape2.shape_id] = overlap_area
                 shape2.overlapping_shapes[shape1.shape_id] = overlap_area
 
@@ -914,24 +912,24 @@ def detect_overlaps(shapes: List[ShapeData]) -> None:
 def extract_text_inventory(
     pptx_path: Path, prs: Optional[Any] = None, issues_only: bool = False
 ) -> InventoryData:
-    """Extract text content from all slides in a PowerPoint presentation.
+    """从 PowerPoint 演示文稿的所有幻灯片中提取文本内容。
 
     Args:
-        pptx_path: Path to the PowerPoint file
-        prs: Optional Presentation object to use. If not provided, will load from pptx_path.
-        issues_only: If True, only include shapes that have overflow or overlap issues
+        pptx_path: PowerPoint 文件的路径
+        prs: 要使用的可选 Presentation 对象。如果未提供，将从 pptx_path 加载。
+        issues_only: 如果为 True，则仅包括存在溢出或重叠问题的形状
 
-    Returns a nested dictionary: {slide-N: {shape-N: ShapeData}}
-    Shapes are sorted by visual position (top-to-bottom, left-to-right).
-    The ShapeData objects contain the full shape information and can be
-    converted to dictionaries for JSON serialization using to_dict().
+    返回嵌套字典：{slide-N: {shape-N: ShapeData}}
+    形状按视觉位置排序（从上到下，从左到右）。
+    ShapeData 对象包含完整的形状信息，可以使用 to_dict() 转换为
+    字典用于 JSON 序列化。
     """
     if prs is None:
         prs = Presentation(str(pptx_path))
     inventory: InventoryData = {}
 
     for slide_idx, slide in enumerate(prs.slides):
-        # Collect all valid shapes from this slide with absolute positions
+        # 从此幻灯片收集所有有效形状及绝对位置
         shapes_with_positions = []
         for shape in slide.shapes:  # type: ignore
             shapes_with_positions.extend(collect_shapes_with_absolute_positions(shape))
@@ -939,7 +937,7 @@ def extract_text_inventory(
         if not shapes_with_positions:
             continue
 
-        # Convert to ShapeData with absolute positions and slide reference
+        # 使用绝对位置和幻灯片引用转换为 ShapeData
         shape_data_list = [
             ShapeData(
                 swp.shape,
@@ -950,23 +948,23 @@ def extract_text_inventory(
             for swp in shapes_with_positions
         ]
 
-        # Sort by visual position and assign stable IDs in one step
+        # 按视觉位置排序并一步分配稳定 ID
         sorted_shapes = sort_shapes_by_position(shape_data_list)
         for idx, shape_data in enumerate(sorted_shapes):
             shape_data.shape_id = f"shape-{idx}"
 
-        # Detect overlaps using the stable shape IDs
+        # 使用稳定的形状 ID 检测重叠
         if len(sorted_shapes) > 1:
             detect_overlaps(sorted_shapes)
 
-        # Filter for issues only if requested (after overlap detection)
+        # 如果请求，则过滤仅问题（在重叠检测之后）
         if issues_only:
             sorted_shapes = [sd for sd in sorted_shapes if sd.has_any_issues]
 
         if not sorted_shapes:
             continue
 
-        # Create slide inventory using the stable shape IDs
+        # 使用稳定的形状 ID 创建幻灯片清单
         inventory[f"slide-{slide_idx}"] = {
             shape_data.shape_id: shape_data for shape_data in sorted_shapes
         }
@@ -975,22 +973,21 @@ def extract_text_inventory(
 
 
 def get_inventory_as_dict(pptx_path: Path, issues_only: bool = False) -> InventoryDict:
-    """Extract text inventory and return as JSON-serializable dictionaries.
+    """提取文本清单并返回可序列化为 JSON 的字典。
 
-    This is a convenience wrapper around extract_text_inventory that returns
-    dictionaries instead of ShapeData objects, useful for testing and direct
-    JSON serialization.
+    这是 extract_text_inventory 的便捷包装器，返回字典而不是
+    ShapeData 对象，适用于测试和直接 JSON 序列化。
 
     Args:
-        pptx_path: Path to the PowerPoint file
-        issues_only: If True, only include shapes that have overflow or overlap issues
+        pptx_path: PowerPoint 文件的路径
+        issues_only: 如果为 True，则仅包括存在溢出或重叠问题的形状
 
     Returns:
-        Nested dictionary with all data serialized for JSON
+        所有数据序列化的嵌套字典
     """
     inventory = extract_text_inventory(pptx_path, issues_only=issues_only)
 
-    # Convert ShapeData objects to dictionaries
+    # 将 ShapeData 对象转换为字典
     dict_inventory: InventoryDict = {}
     for slide_key, shapes in inventory.items():
         dict_inventory[slide_key] = {
@@ -1001,11 +998,11 @@ def get_inventory_as_dict(pptx_path: Path, issues_only: bool = False) -> Invento
 
 
 def save_inventory(inventory: InventoryData, output_path: Path) -> None:
-    """Save inventory to JSON file with proper formatting.
+    """将清单保存为 JSON 文件，并进行适当格式化。
 
-    Converts ShapeData objects to dictionaries for JSON serialization.
+    将 ShapeData 对象转换为字典用于 JSON 序列化。
     """
-    # Convert ShapeData objects to dictionaries
+    # 将 ShapeData 对象转换为字典
     json_inventory: InventoryDict = {}
     for slide_key, shapes in inventory.items():
         json_inventory[slide_key] = {

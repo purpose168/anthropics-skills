@@ -2,11 +2,11 @@ import sys
 from pypdf import PdfReader
 
 
-# Script for Claude to run to determine whether a PDF has fillable form fields. See forms.md.
+# 大型语言模型 用于运行以确定 PDF 是否具有可填写表单字段的脚本。详见 forms.md。
 
 
 reader = PdfReader(sys.argv[1])
 if (reader.get_fields()):
-    print("This PDF has fillable form fields")
+    print("此 PDF 具有可填写的表单字段")
 else:
-    print("This PDF does not have fillable form fields; you will need to visually determine where to enter data")
+    print("此 PDF 没有可填写的表单字段；你需要直观地确定数据输入位置")

@@ -1,7 +1,7 @@
 from playwright.sync_api import sync_playwright
 import os
 
-# Example: Automating interaction with static HTML files using file:// URLs
+# 示例：使用file:// URL对静态HTML文件进行自动化交互
 
 html_file_path = os.path.abspath('path/to/your/file.html')
 file_url = f'file://{html_file_path}'
@@ -10,24 +10,24 @@ with sync_playwright() as p:
     browser = p.chromium.launch(headless=True)
     page = browser.new_page(viewport={'width': 1920, 'height': 1080})
 
-    # Navigate to local HTML file
+    # 导航到本地HTML文件
     page.goto(file_url)
 
-    # Take screenshot
+    # 截图
     page.screenshot(path='/mnt/user-data/outputs/static_page.png', full_page=True)
 
-    # Interact with elements
+    # 与元素交互
     page.click('text=Click Me')
     page.fill('#name', 'John Doe')
     page.fill('#email', 'john@example.com')
 
-    # Submit form
+    # 提交表单
     page.click('button[type="submit"]')
     page.wait_for_timeout(500)
 
-    # Take final screenshot
+    # 截图最终结果
     page.screenshot(path='/mnt/user-data/outputs/after_submit.png', full_page=True)
 
     browser.close()
 
-print("Static HTML automation completed!")
+print("静态HTML自动化完成！")

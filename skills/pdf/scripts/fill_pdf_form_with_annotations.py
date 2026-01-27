@@ -5,20 +5,20 @@ from pypdf import PdfReader, PdfWriter
 from pypdf.annotations import FreeText
 
 
-# Fills a PDF by adding text annotations defined in `fields.json`. See forms.md.
+# 通过添加 `fields.json` 中定义的文本注释来填充 PDF。详见 forms.md。
 
 
 def transform_coordinates(bbox, image_width, image_height, pdf_width, pdf_height):
-    """Transform bounding box from image coordinates to PDF coordinates"""
-    # Image coordinates: origin at top-left, y increases downward
-    # PDF coordinates: origin at bottom-left, y increases upward
+    """将边界框坐标从图像坐标转换为 PDF 坐标"""
+    # 图像坐标：原点在左上角，Y 轴向下增加
+    # PDF 坐标：原点在左下角，Y 轴向上增加
     x_scale = pdf_width / image_width
     y_scale = pdf_height / image_height
     
     left = bbox[0] * x_scale
     right = bbox[2] * x_scale
     
-    # Flip Y coordinates for PDF
+    # 翻转 Y 坐标以适应 PDF
     top = pdf_height - (bbox[1] * y_scale)
     bottom = pdf_height - (bbox[3] * y_scale)
     
@@ -26,43 +26,44 @@ def transform_coordinates(bbox, image_width, image_height, pdf_width, pdf_height
 
 
 def fill_pdf_form(input_pdf_path, fields_json_path, output_pdf_path):
-    """Fill the PDF form with data from fields.json"""
+    """使用 fields.json 中的数据填充 PDF 表单"""
     
-    # `fields.json` format described in forms.md.
+    # `fields.json` 格式详见 forms.md。
     with open(fields_json_path, "r") as f:
         fields_data = json.load(f)
     
-    # Open the PDF
+    # 打开 PDF 文件
     reader = PdfReader(input_pdf_path)
     writer = PdfWriter()
     
-    # Copy all pages to writer
+    # 将所有页面复制到 writer
     writer.append(reader)
     
-    # Get PDF dimensions for each page
+    # 获取每一页的 PDF 尺寸
     pdf_dimensions = {}
     for i, page in enumerate(reader.pages):
         mediabox = page.mediabox
-        pdf_dimensions[i + 1] = [mediabox.width, mediabox.height]
+        pdf_dimensions[i + 1] = [mediabox.width, mediabox.height]  # 页码从 1 开始
     
-    # Process each form field
+    # 处理每个表单字段
     annotations = []
     for field in fields_data["form_fields"]:
         page_num = field["page_number"]
         
-        # Get page dimensions and transform coordinates.
+        # 获取页面尺寸并转换坐标。
         page_info = next(p for p in fields_data["pages"] if p["page_number"] == page_num)
         image_width = page_info["image_width"]
         image_height = page_info["image_height"]
         pdf_width, pdf_height = pdf_dimensions[page_num]
         
+        # 将图像坐标转换为 PDF 坐标
         transformed_entry_box = transform_coordinates(
             field["entry_bounding_box"],
             image_width, image_height,
             pdf_width, pdf_height
         )
         
-        # Skip empty fields
+        # 跳过空字段
         if "entry_text" not in field or "text" not in field["entry_text"]:
             continue
         entry_text = field["entry_text"]
@@ -70,11 +71,11 @@ def fill_pdf_form(input_pdf_path, fields_json_path, output_pdf_path):
         if not text:
             continue
         
-        font_name = entry_text.get("font", "Arial")
-        font_size = str(entry_text.get("font_size", 14)) + "pt"
-        font_color = entry_text.get("font_color", "000000")
+        font_name = entry_text.get("font", "Arial")  # 默认使用 Arial 字体
+        font_size = str(entry_text.get("font_size", 14)) + "pt"  # 默认字体大小为 14pt
+        font_color = entry_text.get("font_color", "000000")  # 默认字体颜色为黑色
 
-        # Font size/color seems to not work reliably across viewers:
+        # 字体大小/颜色在不同阅读器中似乎不能可靠工作：
         # https://github.com/py-pdf/pypdf/issues/2084
         annotation = FreeText(
             text=text,
@@ -86,20 +87,20 @@ def fill_pdf_form(input_pdf_path, fields_json_path, output_pdf_path):
             background_color=None,
         )
         annotations.append(annotation)
-        # page_number is 0-based for pypdf
+        # pypdf 的页码是从 0 开始的
         writer.add_annotation(page_number=page_num - 1, annotation=annotation)
         
-    # Save the filled PDF
+    # 保存填充后的 PDF
     with open(output_pdf_path, "wb") as output:
         writer.write(output)
     
-    print(f"Successfully filled PDF form and saved to {output_pdf_path}")
-    print(f"Added {len(annotations)} text annotations")
+    print(f"成功填充 PDF 表单并保存到 {output_pdf_path}")
+    print(f"添加了 {len(annotations)} 个文本注释")
 
 
 if __name__ == "__main__":
     if len(sys.argv) != 4:
-        print("Usage: fill_pdf_form_with_annotations.py [input pdf] [fields.json] [output pdf]")
+        print("用法: fill_pdf_form_with_annotations.py [输入 PDF] [fields.json] [输出 PDF]")
         sys.exit(1)
     input_pdf = sys.argv[1]
     fields_json = sys.argv[2]
