@@ -90,7 +90,7 @@ async def agent_loop(
     tools: list[dict[str, Any]],
     connection: Any,
 ) -> tuple[str, dict[str, Any]]:
-    """使用 MCP 工具运行代理循环。"""
+    """使用 MCP 工具运行智能体循环。"""
     messages = [{"role": "user", "content": question}]
 
     response = await asyncio.to_thread(
